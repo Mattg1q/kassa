@@ -22,4 +22,8 @@ public class Membership {
     public int getPoints() {
         return points;
     }
+
+    public Customer getMember() { // Fix för att använda fältet 'member'
+        return member;
+    }
 }

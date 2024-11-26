@@ -71,4 +71,76 @@ class ProductAndMembershipTests {
         assertEquals(200.0, discountedPrice, 0.01, "Discount should reduce price correctly for 'Buy 2, Get 1 Free'");
         assertTrue(discount.isValid(), "Discount should be valid when within validity period");
     }
+
+    @Test
+    void testEmptyProductGroup() {
+        // Arrange
+        ProductGroup group = new ProductGroup("EmptyGroup");
+
+        // Act
+        double totalDiscountedPrice = group.calculateGroupDiscount(10.0);
+
+        // Assert
+        assertEquals(0.0, totalDiscountedPrice, 0.01, "Discounted price for an empty group should be 0.0");
+    }
+
+    @Test
+    void testNegativeDiscountPercentage() {
+        // Arrange
+        Product product = new Product("Pineapple", new Money(200.0, java.util.Currency.getInstance("SEK")));
+        ProductGroup group = new ProductGroup("Tropical");
+        group.addProduct(product);
+
+        // Act
+        double discountedPrice = group.calculateGroupDiscount(-10.0); // Negative discount
+
+        // Assert
+        assertEquals(220.0, discountedPrice, 0.01, "Negative discount percentage should increase the price");
+    }
+
+    @Test
+    void testAddMultipleSameProductToGroup() {
+        // Arrange
+        Product product = new Product("Orange", new Money(30.0, java.util.Currency.getInstance("SEK")));
+        ProductGroup group = new ProductGroup("Citrus");
+
+        // Act
+        group.addProduct(product);
+        group.addProduct(product);
+        double discountedPrice = group.calculateGroupDiscount(10.0);
+
+        // Assert
+        assertEquals(2, group.getProducts().size(), "Group should allow adding the same product multiple times");
+        assertEquals(54.0, discountedPrice, 0.01, "Discounted price should consider all products, even duplicates");
+    }
+
+    @Test
+    void testMembershipRedeemExactPoints() {
+        // Arrange
+        Customer customer = new Customer("Alice", "456 Wonderland St", "987654321", "555-6789", "alice@example.com");
+        Membership membership = new Membership(customer);
+
+        // Act
+        membership.addPoints(100);
+        boolean redeemed = membership.redeemPoints(100);
+
+        // Assert
+        assertTrue(redeemed, "Redemption should succeed when points match exactly");
+        assertEquals(0, membership.getPoints(), "Points should be 0 after redeeming all points");
+    }
+
+    @Test
+    void testMembershipRedeemMoreThanAvailablePoints() {
+        // Arrange
+        Customer customer = new Customer("Bob", "789 Nowhere Rd", "1122334455", "555-1122", "bob@example.com");
+        Membership membership = new Membership(customer);
+
+        // Act
+        membership.addPoints(50);
+        boolean redeemed = membership.redeemPoints(100);
+
+        // Assert
+        assertFalse(redeemed, "Redemption should fail when attempting to redeem more points than available");
+        assertEquals(50, membership.getPoints(), "Points should remain unchanged if redemption fails");
+    }
 }

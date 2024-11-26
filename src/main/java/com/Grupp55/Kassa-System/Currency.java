@@ -41,9 +41,10 @@ public enum Currency {
             throw new IllegalArgumentException("Växelkurs ej tillgänglig för " + this + " till " + targetCurrency);
         }
     }
-// Metod för att uppdatera en specifik växelkurs
+
+    // Metod för att uppdatera en specifik växelkurs
     public static void setExchangeRate(Currency fromCurrency, Currency toCurrency, double rate) {
-        exchangeRates.computeIfAbsent(fromCurrency, k -> new HashMap<>()).put(toCurrency, rate);
+        exchangeRates.computeIfAbsent(fromCurrency, _ -> new HashMap<>()).put(toCurrency, rate); // Fixad varning
     }
 
     // Metod för att hämta en specifik växelkurs

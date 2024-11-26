@@ -33,4 +33,8 @@ public class ProductGroup {
 
         return totalDiscountedPrice;
     }
+
+    public String getGroupName() { // Fix för att använda 'groupName'
+        return groupName;
+    }
 }

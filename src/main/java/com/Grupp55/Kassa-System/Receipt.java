@@ -17,6 +17,10 @@ public class Receipt implements Printable {
         this.date = new Date();
     }
 
+    public List<Product> getProducts() {
+        return products;
+    }
+
     public void addProduct(Product product) {
         products.add(product);
     }
@@ -80,15 +84,19 @@ public class Receipt implements Printable {
         }
     }
 
-    public void printReceiptToPrinter() {
-        PrinterJob job = PrinterJob.getPrinterJob();
-        job.setPrintable(this);
-
-        if (job.printDialog()) {
-            try {
-                job.print();
-            } catch (PrinterException e) {
-                System.err.println("Utskrift misslyckades: " + e.getMessage());
+    public void printReceiptToPrinter(String filename) {
+        if (GraphicsEnvironment.isHeadless()) {
+            System.out.println("System saknar GUI: Kvittot sparas som PDF i stället.");
+            saveReceiptToFile("receipt.pdf");
+        } else {
+            PrinterJob job = PrinterJob.getPrinterJob();
+            job.setPrintable(this);
+            if (job.printDialog()) {
+                try {
+                    job.print();
+                } catch (PrinterException e) {
+                    System.err.println("Utskrift misslyckades: " + e.getMessage());
+                }
             }
         }
     }
