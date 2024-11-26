@@ -151,4 +151,22 @@ class MoneyAndCurrencyTests {
         assertEquals(money1, money2, "Two Money objects with the same amount and currency should be equal");
         assertNotEquals(money1, money3, "Two Money objects with different amounts should not be equal");
     }
+
+    @Test
+    void testInvalidNonNumericInputForMoney() {
+        // Arrange
+        String invalidInput1 = "ABC";
+        String invalidInput2 = "/(&%¤)=";
+
+        // Act & Assert
+        Exception exception1 = assertThrows(NumberFormatException.class, () -> {
+            new Money(Double.parseDouble(invalidInput1), Currency.getInstance("SEK"));
+        });
+        assertEquals("For input string: \"ABC\"", exception1.getMessage(), "Exception message should indicate invalid input");
+
+        Exception exception2 = assertThrows(NumberFormatException.class, () -> {
+            new Money(Double.parseDouble(invalidInput2), Currency.getInstance("SEK"));
+        });
+        assertEquals("For input string: \"/(&%¤)=\"", exception2.getMessage(), "Exception message should indicate invalid input");
+    }
 }

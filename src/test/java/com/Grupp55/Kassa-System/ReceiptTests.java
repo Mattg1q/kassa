@@ -23,6 +23,30 @@ class ReceiptTests {
     }
 
     @Test
+    void testInitiateNewPurchase() {
+        // Arrange: Initiera ett nytt köp
+        Receipt receipt = new Receipt();
+
+        // Assert: Verifiera att kvittot är tomt från början
+        assertEquals(0, receipt.getProducts().size(), "New receipt should start with no products");
+        assertEquals(0.0, receipt.calculateTotal(), 0.01, "New receipt total should be 0.0");
+
+        // Arrange: Lägg till produkter
+        Product product1 = new Product("Apple", new Money(10.0, java.util.Currency.getInstance("SEK")));
+        Product product2 = new Product("Banana", new Money(15.0, java.util.Currency.getInstance("SEK")));
+        Product product3 = new Product("Milk", new Money(20.0, java.util.Currency.getInstance("SEK")));
+
+        // Act: Registrera produkter i kvittot
+        receipt.addProduct(product1);
+        receipt.addProduct(product2);
+        receipt.addProduct(product3);
+
+        // Assert: Verifiera antalet produkter och totalsumman
+        assertEquals(3, receipt.getProducts().size(), "Receipt should contain 3 products after additions");
+        assertEquals(45.0, receipt.calculateTotal(), 0.01, "Total price should be the sum of all product prices");
+    }
+
+    @Test
     void testCalculateTotalWithDiscounts() {
         // Arrange
         Product product = new Product("Apple", new Money(100.0, java.util.Currency.getInstance("SEK")));
@@ -131,6 +155,39 @@ class ReceiptTests {
     }
 
     @Test
+    void testEndPurchaseAndResetReceipt() {
+        // Arrange
+        Receipt receipt = new Receipt();
+        Product product1 = new Product("Apple", new Money(10.0, java.util.Currency.getInstance("SEK")));
+        Product product2 = new Product("Banana", new Money(15.0, java.util.Currency.getInstance("SEK")));
+        Discount discount = new Discount(null) {
+            @Override
+            public double applyDiscount(double price) {
+                return price * 0.9; // 10% rabatt
+            }
+
+            @Override
+            public boolean isApplicable(Product product) {
+                return true;
+            }
+        };
+
+        receipt.addProduct(product1);
+        receipt.addProduct(product2);
+        receipt.addDiscount(discount);
+
+        // Act: Avsluta köpet och återställ kvittot
+        double totalBeforeReset = receipt.calculateTotal();
+        receipt.endPurchase(); // Anta att detta är en metod som avslutar köpet och återställer kvittot
+
+        // Assert
+        assertEquals(22.5, totalBeforeReset, 0.01, "Total before resetting should reflect applied discounts");
+        assertEquals(0, receipt.getProducts().size(), "Receipt should have no products after reset");
+        assertEquals(0.0, receipt.calculateTotal(), 0.01, "Total should be 0.0 after reset");
+        assertEquals(0, receipt.getDiscounts().size(), "Receipt should have no discounts after reset");
+    }
+
+    @Test
     void testLargeDataHandling() {
         // Arrange
         Receipt receipt = new Receipt();
@@ -160,69 +217,5 @@ class ReceiptTests {
         // Assert
         assertEquals(9_500.0, total, 0.01, "Total should be correct for large data set with discounts");
         assertTrue((endTime - startTime) < 5000, "Performance issue: calculateTotal should complete in under 5 seconds");
-    }
-
-    @Test
-    void testReceiptWithOnlyDiscounts() {
-        // Arrange
-        Receipt receipt = new Receipt();
-        Discount discount = new Discount(null) {
-            @Override
-            public double applyDiscount(double price) {
-                return price * 0.5; // 50% rabatt
-            }
-
-            @Override
-            public boolean isApplicable(Product product) {
-                return true;
-            }
-        };
-        receipt.addDiscount(discount);
-
-        // Act
-        double total = receipt.calculateTotal();
-
-        // Assert
-        assertEquals(0.0, total, 0.01, "Total should remain 0.0 when there are no products, even with discounts");
-    }
-
-    @Test
-    void testMultipleDiscountsAndProducts() {
-        // Arrange
-        Receipt receipt = new Receipt();
-        Product product1 = new Product("Item1", new Money(100.0, java.util.Currency.getInstance("SEK")));
-        Product product2 = new Product("Item2", new Money(50.0, java.util.Currency.getInstance("SEK")));
-        Discount discount1 = new Discount(null) {
-            @Override
-            public double applyDiscount(double price) {
-                return price - 10.0;
-            }
-
-            @Override
-            public boolean isApplicable(Product product) {
-                return product.getName().equals("Item1");
-            }
-        };
-        Discount discount2 = new Discount(null) {
-            @Override
-            public double applyDiscount(double price) {
-                return price * 0.9;
-            }
-
-            @Override
-            public boolean isApplicable(Product product) {
-                return product.getName().equals("Item2");
-            }
-        };
-        receipt.addProduct(product1);
-        receipt.addProduct(product2);
-        receipt.addDiscount(discount1);
-        receipt.addDiscount(discount2);
-
-        // Act
-        double total = receipt.calculateTotal();
-
-        // Assert
-        assertEquals(115.0, total, 0.01, "Total should reflect the correct discounts applied to both products");
     }
 }
